@@ -121,52 +121,48 @@ Inputs:
 
 Here a list of the prebuilt plot functions.
 ```python
-def plot2D(self, xlabel, ylabel, xlog=True, ylog=True, diagonal=True, block=True):
+def plot2D(self, xlabel, ylabel, filename=None, xlog=True, ylog=True, diagonal=True, flatten=True, lightweight=False, block=True):
 ```
 Inputs:
 - **xlabel**(string): Name of the metric to put on the x.
 - **ylabel**(string): Name of the metric to put on the y.
+- **filename**(string): If given, loads and plots the data in the specific file specified.
+**Note**: this does not override the data currently stored(loaded) in the class.
 - **xlog,ylog**(bool): Sets the relative axis with a logarithmic scale.
+- **flatten**(bool): Specify if each metric matrix(states\*parameters) is desired to be flattened. If kept as matrix form the plots will discern between states, but the plot may be slower and with too many information. If True the information of states/params pairs is lost, but the plots are more readable in large states/params case.
+- **lightweight**(bool): If *flatten=True*, it will keep only the first 10'000 samples, in order to avoid too dense(and slower) plots.
 - **diagonal**(bool): Display a red line as the main diagonal(for reference).
 - **block**(bool): If False multiple plots can be shown at the same time. If True each plot will block execution(as is the matplotlib default behaviour).
 
-**Note**: If the data is not flattened, for graphical reasons only data up to 10 states are plotted.
-
-```python
-def quickPlot2D(self, filename, xlabel, ylabel, xlog=True, ylog=True, diagonal=True, flatten=True, lightweight=False, block=True):
-```
-Inputs:
-- **filename**(string): Plots the data in the specific file specified.
-**Note**: this does not override the data currently stored(loaded) in the class.
-- **lightweight**(bool): If *flatten=True*, it will keep only the first 10'000 samples, in order to avoid too dense(and slower) plots.
-- **xlabel,ylabel,xlog,ylog,diagonal,flatten, block**: As before
 
 **Note**: If the data is not flattened, for graphical reasons only data up to 10 states are plotted.
 
 ```python
-def plot3D(self, xlabel, ylabel, zlabel, block=True):
+def plot3D(self, xlabel, ylabel, zlabel, filename=None, block=True):
 ```
-Inputs: the usual metric labels, and block option.
+Inputs: the usual metric labels, filename and block option.
 
 ```python
-def hist(self, xlabel, bins=100, ranges=None, block=True):
+def hist(self, xlabel, filename=None, bins=100, ranges=None, filename=None, block=True):
 ```
 Inputs: refer to [matplotlib histograms](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html).
 
-```
-def plotBounds(self,Nstates=1,Npars=1,metrics=["R","T"],sort_by=None,log=False,block=True):
+```python
+def plotBounds(self,Nstates=1,Npars=1,metrics=["R","T"],sort_by=None,log=False,filename=None,block=True):
 ```
 Inputs:
 - **Nstates,Npars**(int): Number of states and parameters. The minimum of the two will be the number of subplots, and for each subplot the other number of samples is shown. So for example *Nstates=5,Npars=1_000* will show 5 plots, each with a fixed state, and will show 1'000 points(1 for each parameter). *Nstates=1_000,Npars=5* is the reverse.
 - **metrics**(list of strings): The metrics to plot with fixed state/parameter for all the parameters/states.
-- **sort_by**(string): Specify a metric for which the various points in the plot are sorted by. **Note**: the metric doesn't have to be one of the plotted metrics. For example ```plotBounds(5,100,metrics=["R","T"],sort_by="C_SLD")``` will plot R and T values, but sort them in ascending order with respect to the "optimality" of the state for the given parameter(or the reverse). This can be interesting to see for example the incompatibility of optimal probes.
+- **sort_by**(string): Specify a metric for which the various points in the plot are sorted by. **Note**: the metric doesn't have to be one of the plotted metrics. For example ```plotBounds(5,100,metrics=["R","T"],sort_by="C_SLD")``` will plot R and T values, but sort them in ascending order with respect to the "optimality" of the state for the given parameter(or the reverse). This can be interesting to see for example the incompatibility change between optimal to worse probes.
 - **log**(bool): If True the y is set to logarithmic scale.
+- **filename**(string): If given, loads and plots the data in the specific file specified.
 - **block**(bool): If True execution is stopped at each graph.
 
 
 
 ## Metrics
 The metric supported are ["s","c","R","T","C_SLD","C_W","Delta_R_T"].
+
 They are calculated as:
 - **sloppiness**: $s = \frac{1}{\text{Det} Q}$
 - **compatibility**: $c = \frac{2}{\text{Tr}[D^\dagger D]}$
@@ -204,7 +200,7 @@ Additionally it **has to be implemented** the ```__call__``` method. This method
 The function matrix_exp of torch is advised.
 
 ### Use of auxiliary spaces
-If the model work on more than 1 system(i.e. 2 systems), they can implemented in the following way.
+If the model work on more than 1 system(i.e. 2 systems), it can be implemented in the following way.
 1) Specify the ```self.dK``` and ```self.entanglement_n``` variables.
 **Note**: These two variables can be in general not specified. If they are specified, and ```self.dK```$\neq 0$, then the code automatically sample over both spaces.
 2) The ```__call__``` function has to output some kind of unitary **on the tensor space** $H\otimes K$. For example interesting cases are $U' \equiv U\otimes \mathbb{I}$, or $U"\equiv U \otimes U$.
@@ -264,5 +260,5 @@ def findGenerators(self, representationDimension):
 	J_x = 0.5*(J_plus+J_minus)
 	J_y = -0.5j*(J_plus-J_minus)
 
-	return tensor(np.array([J_x,J_y,J_z]))
+	return tensor([J_x,J_y,J_z])
 ```
