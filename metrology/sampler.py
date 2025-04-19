@@ -13,10 +13,10 @@ class Sampler:
 		it samples uniformly over the Hilbert space.
 
 		Parameters:
-		npars (int): Number of parameters to be estimated.
-		dH (int): Dimension of the Hilbert space.
-		suppress ([int,int]): Vector of two integers, the first says how many rows to suppress
-		while the second says how many ADDITIONAL phases to suppress
+		model (function or class): User defined function that returns the evolution unitary.
+							Must take 1 obligatory parameter, a np.ndarray of parameters
+		suppress (list): Number of rows from the end to set to 0, and number of additional phases
+							to set to 0.
 		"""
 		self.model = model
 		self.suppress = suppress
@@ -31,11 +31,12 @@ class Sampler:
 		only states inside the R=1 dHsphere are kept, and
 		renormalized into its surface.
 
-		Args:
-			- N: number of states to be sampled
+		Parameters:
+		dim (int): Dimension of the Hilbert space to sample on.
+		N (int): number of states to be sampled
 
 		Returns:
-			- numpy array of elements of form (a,b,...,phase_b,phase_c,...)
+		numpy array of elements of form (a,b,...,phase_b,phase_c,...)
 		"""
 		n = 100_000 # instead of doing the whole thing it's done in batches
 
@@ -68,7 +69,7 @@ class Sampler:
 
 		return np.conj(psi[:,:,None])*psi[:,None,:] # perform outer product on each state
 
-	def sampleStatisticalOperator(self, N=1):
+	def sampleStatisticalOperators(self, N=1):
 		states = self.samplePureStates(self.model.dH, N)
 		return self.constructStatisticalOperator(states, self.model.dH)
 

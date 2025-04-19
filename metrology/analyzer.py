@@ -88,14 +88,12 @@ class Analyzer:
 		by a vector of npars parameters, which are to be estimated.
 		Constant, or additional parameters that aren't of interest
 		can be passed in the model.
-		Important: analysis can be conducted on single setups, it's not
-		optimized to numpy broadcast multiple analysis in parallel.
 
 		Parameters:
 		model (function or class): User defined function that returns the evolution unitary.
 							Must take 1 obligatory parameter, a np.ndarray of parameters
-		npars (int): Number of parameters to be estimated.
-		dH (int): Dimension of the Hilbert space.
+		suppress (list): Number of rows from the end to set to 0, and number of additional phases
+							to set to 0.
 		"""
 		self.suppress = suppress
 		self.sampler = Sampler(model=model, suppress=suppress)
@@ -115,20 +113,21 @@ class Analyzer:
 		given parameters.
 
 		Parameters:
-		sampleOverStates (bool): If True a sampling over states is done.
-		sampleOverPars (bool): If True a sampling over parameters is done.
 		state (np.ndarray): Statistical operator state to evaluate the model on.
 		pars (np.ndarray): Vector of parameters of the given model.
 		parametersRange (np.ndarray): Vector of ranges onto which sample parameters,
 								i.e. np.array([ [0,2*pi],[0,2*pi] ])
 		Nstates (int): Number of sample states to use for the statistical analysis.
 		Npars (int): Number of sample parameters to use for the statistical analysis.
-		s,c,R,R1,C_SLD,C_H,Delta (bool): If True they are calculated and returned.
+		metrics (lists): List of strings, which specify the metrics to keep track of.
+		W (np.ndarray): Weight matrix, default value is the identity.
 		epsilon (float): Specify the step increment in doing derivatives in the incremental way.
-		save (string): If not none, it's the name of the file with the dictionary.
+		save (string): If not None, it's the name of the file with the dictionary.
+		parallelize (bool): Flag to parallelize calculation of the SLDs.
+		verbose (bool): If True time checkpoints are reported.
 
 		Returns:
-		Values of specified metrics for the N sampled values.
+		Values of specified metrics for the Nstates*Npars sampled values.
 		"""
 		if pars is None and parametersRange is None:
 			raise Exception("If a set of parameters is not passed, a parameters range MUST be passed.")
@@ -150,9 +149,9 @@ class Analyzer:
 		if state is None:
 			if hasattr(self.sampler.model,"dK"):
 				if self.sampler.model.dK != 0:
-					state = self.sampler.sampleEntangledStatisticalOperators(N=Nstates)
+					state = self.sampler.sampleEntangledStatisticalOperator(N=Nstates)
 			else:
-				state = self.sampler.sampleStatisticalOperator(N=Nstates)
+				state = self.sampler.sampleStatisticalOperators(N=Nstates)
 		if pars is None:
 			pars = self.sampler.sampleParameters(ranges=parametersRange,N=Npars)
 
@@ -190,7 +189,7 @@ class Analyzer:
 			print("Calculating metrics")
 
 		t = time()
-		r = fastAnalyze(final_state,L,sqrtm(W).astype(np.float64),W,Nstates,Npars,self.sampler.model.npars,metrics)
+		r = fastAnalyze(final_state,L,sqrtm(W).astype(np.float64),W.astype(np.float64),Nstates,Npars,self.sampler.model.npars,metrics)
 		if verbose:
 			print("Done in: ",time()-t)
 
