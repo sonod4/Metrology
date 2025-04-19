@@ -19,7 +19,7 @@ This class is the main tool that do the analysis. The class definition is
 ```def __init__(self,model,suppress)```
 Where it has to receive the following parameters:
 - **model**(Model type class): Is a callable object, that takes in input a vector of the parameters to be estimated, and returns the unitary evolution valued at such parameters+(some additional hidden parameters that may be hidden in the object, see [Model](#Examples) for further details).
-- **suppress**(ndarray, shape:(2)): list of parameters in the qbit to suppress. Given the parametrization  $\begin{pmatrix}a\\\ b e^{i\phi_b} \\ ...\end{pmatrix}$, the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces  $\begin{pmatrix}a\\\ b e^{i\phi_b} \\ c e^{i\phi_c} \\ d e^{i\phi_d} \\ f e^{i\phi_f}\end{pmatrix} \mapsto \begin{pmatrix}a\\\ b e^{i\phi_b} \\ c e^{i 0} \\ d e^{i 0} \\ 0 \end{pmatrix}$
+- **suppress**(ndarray, shape:(2)): list of parameters in the qbit to suppress. Given the parametrization  $\begin{pmatrix}a\\\ b e^{i\phi_b} \\ ...\end{pmatrix}$, the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces  $\begin{pmatrix}a \\\ b e^{i\phi_b} \\\ c e^{i\phi_c} \\\ d e^{i\phi_d} \\\ f e^{i\phi_f}\end{pmatrix} \mapsto \begin{pmatrix}a\\\ b e^{i\phi_b} \\ c e^{i 0} \\ d e^{i 0} \\ 0 \end{pmatrix}$
 
 The main method to be called is 
 ```
