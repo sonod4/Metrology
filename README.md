@@ -22,7 +22,7 @@ Where it has to receive the following parameters:
 - **suppress**(ndarray, shape:(2)): list of parameters in the nbit to suppress. Given the parametrization
 $$  \begin{bmatrix}
     a \\
-    b e^{i\phi_b} \\
+    be^{i\phi_b} \\
     \end{bmatrix} $$
 the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces
 $$  \begin{bmatrix}
