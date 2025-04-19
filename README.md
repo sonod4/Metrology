@@ -19,7 +19,7 @@ This class is the main tool that do the analysis. The class definition is
 ```def __init__(self,model,suppress)```
 Where it has to receive the following parameters:
 - **model**(Model type class): Is a callable object, that takes in input a vector of the parameters to be estimated, and returns the unitary evolution valued at such parameters+(some additional hidden parameters that may be hidden in the object, see [Model](#model) for further details).
-- **suppress**(ndarray, shape:(2)): list of parameters in the nbit to suppress.
+- **suppress**(ndarray, shape:(2)): List of parameters in the nbit to suppress.
 
 Given the parametrization
 
@@ -29,7 +29,7 @@ $$  \begin{bmatrix}
     c \\
     \end{bmatrix} $$
     
-the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces
+the first number specify how many parameters(a,b,...) from the bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces
 
 $$  \begin{bmatrix}
     a \\
@@ -50,32 +50,33 @@ $$  \begin{bmatrix}
 The main method to be called is 
 ```python
 def fastSampleAnalysis(self, state=None, pars=None, parametersRange=None,
-						Nstates=1,Npars=1, metrics=[], W=None, epsilon=None,
-						save=None, parallelize=True, verbose=True)
+			Nstates=1,Npars=1, metrics=[], W=None, epsilon=None,
+			save=None, parallelize=True, verbose=True)
 ```
 This method returns a dictionary(a map key-values) with the asked statistical informations **calculated for each sample combination**(so a matrix of numbers).
 The function inputs are:
 - **state**(ndarray): If we want to work with a specific state($\rho$), or a list of states, we can pass them here. Shape of input is therefore either (dH,dH) or (#states,dH,dH).
 - **pars**(ndarray): If we want to work with a specific parameters choice, or a list of parameters, we can pass them here. Shape of input is therefore either (npars) or (#parametersWanted,npars).
-- **parametersRange**(ndarray): Vector of ranges, over which the respectively parameters are sampled over. (i.e. ```np.array([ [0,0.01],[0,2*pi] ])``` . It can be useful if we want to sample small values for some(or all) the parameters.). If pars is not passed this argoument is mandatory.
+- **parametersRange**(ndarray): Vector of ranges, over which the respectively parameters are sampled over. (i.e. ```np.array([ [0,0.01],[0,2*pi] ])``` ). It can be useful if we want to sample small values for some(or all) the parameters. If pars is not passed this argoument is mandatory.
 - **Nstates**(int): It specify the number of states to randomly(uniformly) sample over Hilbert space $H$(or $H\otimes K$ in case the model uses entangled probes).
-- **Npars**(int): It specify the number of parameter choices to randomly(uniformly) sample over the range defined in *parametersRange*.
+- **Npars**(int): It specify the number of parameter choices to randomly(uniformly) sample over the ranges defined in *parametersRange*.
 - **metrics**(list of strings): Name of metrics to calculate for each sample. Supported metrics are ["s","c","R","T","C_SLD","C_H","C_W","Delta_R_T"](refer to [Metrics](#metrics) for their definitions).
 - **W**(ndarray): Must be real positive matrix of shape (npars,npars). Default value is the identity.
 - **epsilon**(float): In calculating derivatives, it's used an incremental step, *epsilon* is the size of the step which can be adjusted. (Default value is 0.00000001.)
 - **save**(string): If passed saves the result dictionary into a file with that name(pickle is used).
-- **parallelize**(bool): The calculation for the SLDs are parallelized by default with Threading. If set to False this is done sequentially instead.
--**verbose**(bool): Default value is True, and prints time elapsed in each major step. If false the print are suppressed.
+- **parallelize**(bool): The calculation for the SLDs are parallelized by default with Thread. If set to False this is done sequentially instead.
+- **verbose**(bool): Default value is True, and prints time elapsed in each major step. If False the print are suppressed.
 
 Returns:
 - A dictionary with the metrics asked for, in the call of the function.
-**Note**: The returned object is a dictionary of *matrices*, where the rows are the different states, while the columns are the different parameters choice. Therefore for example s will have shape (Nstates,Npars).
-For plotting reasons(wanting to ignore singular states, or parameters effects), it can be useful to ```.flatten()``` the matrix.
+
+**Note**: The returned object is a dictionary of *matrices*, where the rows are the different states, while the columns are the different parameters choice. Therefore for example ```r["s"]``` will have shape (Nstates,Npars).
+For plotting reasons(wanting to ignore specific states, or parameters choices), it can be useful to ```.flatten()``` the matrix.
 
 This is the main function that is expected to be called. Other than this there are also some functions which may be of interest(but mostly can be ignored).
 
 ### Sampler
-This method is an internal library object, and it's not supposed to be used. The class definition is
+This method is an internal library object, and it's not supposed to be used(but it is possible to). The class definition is
 ```python
 def __init__(self, model, suppress):
 ```
@@ -83,9 +84,17 @@ This works the same as [Analyzer](#analyzer)
 
 Useful methods which could be called are the following.
 ```python
+def sampleStatisticalOperators(self, N=1):
+```
+Input: Number of states to sample.
+
+Returns: Vector of statistical operators of shape (N, dH, dH).
+
+```python
 def sampleEntangledStatisticalOperators(self, N=1):
 ```
 Input: Number of states to sample.
+
 Returns: Vector of statistical operators of shape (N, dH\*dK, dH\*dK), made as
 
 $$\rho_i \equiv (\sum\limits_{k=1}^{n} \ket{\psi_k}\ket{\phi_k}) (\sum\limits_{k=1}^{n} \bra{\psi_k}\bra{\phi_k})$$
@@ -98,15 +107,15 @@ This object is a container of interesting prebuilt plots. The class definition i
 def __init__(self,data=None,filename=None):
 ```
 Inputs:
-- **data**(dictionary): Dictionary with keys the metrics(the one returned by Analyzer).
-- **filename**(string): Name of the pickle file from which the data dictionary has been pickled.
+- **data**(dictionary): Dictionary with as keys the metrics(the one returned by Analyzer).
+- **filename**(string): Name of the pickle file into which the data dictionary has been pickled.
 
 The class can be used either with a specific dictionary, which can be loaded either in the constructor, or with
 ```python
 def load(self, filename, flatten=False):
 ```
 Inputs:
-- **filename**(string): Name of the pickle file from which the data dictionary has been pickled.
+- **filename**(string): Name of the pickle file into which the data dictionary has been pickled.
 - **flatten**(bool): Specify if each metric matrix(states\*parameters) is desired to be flattened. If kept as matrix form the plots will discern between states, but the plot may be slower and with too many information. If True the information of states/params pairs is lost, but the plots are more readable in large states/params case.
 
 
@@ -121,17 +130,18 @@ Inputs:
 - **diagonal**(bool): Display a red line as the main diagonal(for reference).
 - **block**(bool): If False multiple plots can be shown at the same time. If True each plot will block execution(as is the matplotlib default behaviour).
 
-**Note**: If the data is not flattened, for graphical reasons only data up to 10 states is plotted.
+**Note**: If the data is not flattened, for graphical reasons only data up to 10 states are plotted.
 
 ```python
 def quickPlot2D(self, filename, xlabel, ylabel, xlog=True, ylog=True, diagonal=True, flatten=True, lightweight=False, block=True):
 ```
 Inputs:
-- **filename**(string): Plots the data in the specific file specified. **Note**: this does not override the data currently stored(loaded) in the class.
+- **filename**(string): Plots the data in the specific file specified.
+**Note**: this does not override the data currently stored(loaded) in the class.
 - **lightweight**(bool): If *flatten=True*, it will keep only the first 10'000 samples, in order to avoid too dense(and slower) plots.
 - **xlabel,ylabel,xlog,ylog,diagonal,flatten, block**: As before
 
-**Note**: If the data is not flattened, for graphical reasons only data up to 10 states is plotted.
+**Note**: If the data is not flattened, for graphical reasons only data up to 10 states are plotted.
 
 ```python
 def plot3D(self, xlabel, ylabel, zlabel, block=True):
