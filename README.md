@@ -19,7 +19,9 @@ This class is the main tool that do the analysis. The class definition is
 ```def __init__(self,model,suppress)```
 Where it has to receive the following parameters:
 - **model**(Model type class): Is a callable object, that takes in input a vector of the parameters to be estimated, and returns the unitary evolution valued at such parameters+(some additional hidden parameters that may be hidden in the object, see [Model](#model) for further details).
-- **suppress**(ndarray, shape:(2)): list of parameters in the nbit to suppress.Given the parametrization
+- **suppress**(ndarray, shape:(2)): list of parameters in the nbit to suppress.
+
+Given the parametrization
 
 $$  \begin{bmatrix}
     a \\
@@ -84,7 +86,11 @@ Useful methods which could be called are the following.
 def sampleEntangledStatisticalOperators(self, N=1):
 ```
 Input: Number of states to sample.
-Returns: Vector of statistical operators of shape (N, dH\*dK, dH\*dK), made as $\rho_i \equiv (\sum\limits_{k=1}^{n} \ket{\psi_k}\ket{\phi_k}) (\sum\limits_{k=1}^{n} \bra{\psi_k}\bra{\phi_k})$, with n given by the *entanglement_n* parameter to be specified in the Model(see [Model](#model) for further details).
+Returns: Vector of statistical operators of shape (N, dH\*dK, dH\*dK), made as
+
+$$\rho_i \equiv (\sum\limits_{k=1}^{n} \ket{\psi_k}\ket{\phi_k}) (\sum\limits_{k=1}^{n} \bra{\psi_k}\bra{\phi_k})$$
+
+with n given by the *entanglement_n* parameter to be specified in the Model(see [Model](#model) for further details).
 
 ### Plotter
 This object is a container of interesting prebuilt plots. The class definition is
