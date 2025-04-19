@@ -28,6 +28,7 @@ $$  \begin{bmatrix}
     b \\
     c \\
     \end{bmatrix} $$
+    
 the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces
 
 $$  \begin{bmatrix}
@@ -36,9 +37,9 @@ $$  \begin{bmatrix}
     c e^{i\phi_c} \\
     d e^{i\phi_d} \\
     f e^{i\phi_f} \\
-    \end{bmatrix}
-to 
-$$ \begin{bmatrix}
+    \end{bmatrix} 
+\mapsto
+ \begin{bmatrix}
     a \\
     b e^{i\phi_b} \\
     c e^{0} \\
