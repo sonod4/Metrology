@@ -29,6 +29,12 @@ $\vec{v} = \begin{bmatrix} x \\\ y \end{bmatrix}$
 ```math
 begin{bmatrix}X\\Y\end{bmatrix}
 ```
+```math
+begin{bmatrix}X \\Y \end{bmatrix}
+```
+```math
+$begin{bmatrix}X \\Y \end{bmatrix}$
+```
 
 The main method to be called is 
 ```
