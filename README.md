@@ -18,25 +18,29 @@ The library is made of 3 classes that can be used.
 This class is the main tool that do the analysis. The class definition is
 ```def __init__(self,model,suppress)```
 Where it has to receive the following parameters:
-- **model**(Model type class): Is a callable object, that takes in input a vector of the parameters to be estimated, and returns the unitary evolution valued at such parameters+(some additional hidden parameters that may be hidden in the object, see [Model](#Examples) for further details).
-- **suppress**(ndarray, shape:(2)): list of parameters in the qbit to suppress. Given the parametrization  $\begin{pmatrix}a\\\ b e^{i\phi_b} \\ ...\end{pmatrix}$, the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces  $\begin{bmatrix}a \\\ b e^{i\phi_b} \\\ c e^{i\phi_c} \\\ d e^{i\phi_d} \\\ f e^{i\phi_f}\end{bmatrix}$ $\mapsto \begin{pmatrix}a\\\ b e^{i\phi_b} \\ c e^{i 0} \\ d e^{i 0} \\ 0 \end{pmatrix}$
-
-dfs $\begin{pmatrix} a \\\ b \end{pmatrix}$
-$$
-\vec{v} = \begin{bmatrix} x \\\ y \end{bmatrix}
-$$
-$\vec{v} = \begin{bmatrix} x \\\ y \end{bmatrix}$
-```math
-begin{bmatrix}X\\Y\end{bmatrix}
-```
+- **model**(Model type class): Is a callable object, that takes in input a vector of the parameters to be estimated, and returns the unitary evolution valued at such parameters+(some additional hidden parameters that may be hidden in the object, see [Model](#model) for further details).
+- **suppress**(ndarray, shape:(2)): list of parameters in the nbit to suppress. Given the parametrization
 $$  \begin{bmatrix}
     a \\
-    b \\
-    c \\
-    \end{bmatrix} $$ 
-
+    b e^{i\phi_b} \\
+    \end{bmatrix} $$
+the first number specify how many parameters(a,b,...) from bottom to set to 0, the second number specify how many *additional* phases to set to 0. So for example [1,2] reduces
+$$  \begin{bmatrix}
+    a \\
+    b e^{i\phi_b} \\
+    c e^{i\phi_c} \\
+    d e^{i\phi_d} \\
+    f e^{i\phi_f} \\
+    \end{bmatrix} \mapsto \begin{bmatrix}
+    a \\
+    b e^{i\phi_b} \\
+    c e^{0} \\
+    d e^{0} \\
+    0 \\
+    \end{bmatrix}$$
+    
 The main method to be called is 
-```
+```python
 def fastSampleAnalysis(self, state=None, pars=None, parametersRange=None,
 						Nstates=1,Npars=1, metrics=[], W=None, epsilon=None,
 						save=None, parallelize=True, verbose=True)
@@ -64,21 +68,21 @@ This is the main function that is expected to be called. Other than this there a
 
 ### Sampler
 This method is an internal library object, and it's not supposed to be used. The class definition is
-```
+```python
 def __init__(self, model, suppress):
 ```
 This works the same as [Analyzer](#analyzer)
 
 Useful methods which could be called are the following.
-```
+```python
 def sampleEntangledStatisticalOperators(self, N=1):
 ```
 Input: Number of states to sample.
-Returns: Vector of statistical operators of shape (N, dH\*dK, dH\*dK), made as $\rho_i \equiv (\sum\limits_{k=1}^{n} \ket{\psi_k}\ket{\phi_k})(\sum\limits_{k=1}^{n} \bra{\psi_k}\bra{\phi_k})$ , with n given by the *entanglement_n* parameter to be specified in the Model(see [Model](#model) for further details).
+Returns: Vector of statistical operators of shape (N, dH\*dK, dH\*dK), made as $\rho_i \equiv (\sum\limits_{k=1}^{n} \ket{\psi_k}\ket{\phi_k}) (\sum\limits_{k=1}^{n} \bra{\psi_k}\bra{\phi_k})$, with n given by the *entanglement_n* parameter to be specified in the Model(see [Model](#model) for further details).
 
 ### Plotter
 This object is a container of interesting prebuilt plots. The class definition is
-```
+```python
 def __init__(self,data=None,filename=None):
 ```
 Inputs:
@@ -86,7 +90,7 @@ Inputs:
 - **filename**(string): Name of the pickle file from which the data dictionary has been pickled.
 
 The class can be used either with a specific dictionary, which can be loaded either in the constructor, or with
-```
+```python
 def load(self, filename, flatten=False):
 ```
 Inputs:
@@ -95,7 +99,7 @@ Inputs:
 
 
 Here a list of the prebuilt plot functions.
-```
+```python
 def plot2D(self, xlabel, ylabel, xlog=True, ylog=True, diagonal=True, block=True):
 ```
 Inputs:
@@ -107,7 +111,7 @@ Inputs:
 
 **Note**: If the data is not flattened, for graphical reasons only data up to 10 states is plotted.
 
-```
+```python
 def quickPlot2D(self, filename, xlabel, ylabel, xlog=True, ylog=True, diagonal=True, flatten=True, lightweight=False, block=True):
 ```
 Inputs:
@@ -117,12 +121,12 @@ Inputs:
 
 **Note**: If the data is not flattened, for graphical reasons only data up to 10 states is plotted.
 
-```
+```python
 def plot3D(self, xlabel, ylabel, zlabel, block=True):
 ```
 Inputs: the usual metric labels, and block option.
 
-```
+```python
 def hist(self, xlabel, bins=100, ranges=None, block=True):
 ```
 Inputs: refer to [matplotlib histograms](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html).
@@ -153,7 +157,7 @@ They are calculated as:
 ## Model
 ### General structure
 The model is the key object, needed for making the library work. Since it's generic, it has to be user defined, with some restrictions. The base Model should look like.
-```
+```python
 class MyModel:
 	def __init__(self,someFixedParameters):
 		# mandatory class variables
@@ -185,14 +189,14 @@ If the model work on more than 1 system(i.e. 2 systems), they can implemented in
 
 These two cases are implementable as follows:
 Case $U' \equiv U\otimes \mathbb{I}$:
-```
+```python
 def __call__(self, pars):
 	U = matrix_exp(-1j * self.time * pars[:,0][:,None,None] * ( cos(pars[:,1])[:,None,None]*self.J[0] + sin(pars[:,1])[:,None,None]*self.J[2] ) )
 	I_k = tensor(np.eye(self.dK))
 	return kron(U, I_k)
 ```
 Case $U" \equiv U\otimes U$:
-```
+```python
 def __call__(self, pars):
 	U = matrix_exp(-1j * self.time * pars[:,0][:,None,None] * ( cos(pars[:,1])[:,None,None]*self.J[0] + sin(pars[:,1])[:,None,None]*self.J[2] ) )
 	kron_intermediate = torch.einsum('nij,nkl->nikjl', U, U)
@@ -201,7 +205,7 @@ def __call__(self, pars):
 ```
 ### Generators for SU(2) in generic representation
 In the code we may want to make our class "dimension generic". For example we could have
-```
+```python
 class SU2Model:
 	def __init__(self,time,representationDimension):
 		"""
@@ -220,7 +224,7 @@ class SU2Model:
 		self.J = self.findGenerators(self.representationDimension)
 ```
 Where the ```self.findGenerators(self.representationDimension)``` function returns a vector with the 3 generators of SU(2), in a generic representation. The implementation is as follows:
-```
+```python
 def findGenerators(self, representationDimension):
 	# spin j
 	j = (representationDimension-1)/2
@@ -240,8 +244,3 @@ def findGenerators(self, representationDimension):
 
 	return tensor(np.array([J_x,J_y,J_z]))
 ```
-
-
-
-
-
