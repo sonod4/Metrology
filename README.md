@@ -29,12 +29,11 @@ $\vec{v} = \begin{bmatrix} x \\\ y \end{bmatrix}$
 ```math
 begin{bmatrix}X\\Y\end{bmatrix}
 ```
-```math
-begin{bmatrix}X \\Y \end{bmatrix}
-```
-```math
-$begin{bmatrix}X \\Y \end{bmatrix}$
-```
+$$  \begin{bmatrix}
+    a \\
+    b \\
+    c \\
+    \end{bmatrix} $$ 
 
 The main method to be called is 
 ```
