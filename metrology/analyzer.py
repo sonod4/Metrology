@@ -39,30 +39,38 @@ def fastAnalyze(final_state, L, sqrtW, W, Nstates, Npars, npars, metrics):
 			Q_ = np.real(G_).astype(np.float64)
 			D_ = np.imag(G_).astype(np.float64)
 
+			if np.abs(np.linalg.det(Q_))>1e-15:
+				# useful quantities
+				QI_ = np.linalg.inv(Q_).astype(np.float64)
+				QID_ = np.dot(QI_,D_).astype(np.float64)
+				QIDQI_ = np.dot(QID_,QI_).astype(np.float64)
+				norm1_WQIDQIW_ = np.linalg.norm(np.dot(sqrtW,np.dot(QIDQI_,sqrtW)),ord=1)#.astype(np.float64)
+				# norm1_WQIDQIW_ = np.linalg.norm(QIDQI_,ord=1)
 
-			# useful quantities
-			QI_ = np.linalg.inv(Q_).astype(np.float64)
-			QID_ = np.dot(QI_,D_).astype(np.float64)
-			QIDQI_ = np.dot(QID_,QI_).astype(np.float64)
-			norm1_WQIDQIW_ = np.linalg.norm(np.dot(sqrtW,np.dot(QIDQI_,sqrtW)),ord=1)#.astype(np.float64)
-			# norm1_WQIDQIW_ = np.linalg.norm(QIDQI_,ord=1)
+				C_SLD_ = np.trace(np.dot(W,QI_))
+				R_ = np.abs(np.linalg.eigvals( QID_.astype(np.complex128) )).max() # norm infinity
+				T_ = norm1_WQIDQIW_/C_SLD_
 
-			C_SLD_ = np.trace(np.dot(W,QI_))
-			R_ = np.abs(np.linalg.eigvals( QID_.astype(np.complex128) )).max() # norm infinity
-			T_ = norm1_WQIDQIW_/C_SLD_
-
-			if "s" in metrics:				s[i][j] = 1/np.linalg.det(Q_)
-			if "c" in metrics:				c[i][j] = 2/np.trace( np.dot(np.conj(D_).T,D_) )
-			if "R" in metrics:				R[i][j] = R_
-			if "T" in metrics:				T[i][j] = T_
-			if "C_SLD" in metrics:			C_SLD[i][j] = C_SLD_
-			# if "C_R" in metrics:			C_R[i][j] = C_SLD_+?
-			# if "C_H"  in metrics:			C_H[i][j] = C_SLD_+norm1_WQIDQIW_ # PURE MODEL ASSUMPTION
-			if "C_W"  in metrics:			C_W[i][j] = C_SLD_+norm1_WQIDQIW_
-			# if "Delta_H_SLD" in metrics:	Delta_H_SLD[i][j] = norm1_QIDQI_/C_SLD_
-			if "Delta_R_T" in metrics:		Delta_R_T[i][j] = R_ - T_
-			# if "Delta_R_H" in metrics:		Delta_R_H[i][j] = R_ - norm1_QIDQI_/C_SLD_
-			# if "Delta_T_H" in metrics:		Delta_T_H[i][j] = T_ - norm1_QIDQI_/C_SLD_
+				if "s" in metrics:				s[i][j] = 1/np.linalg.det(Q_)
+				if "c" in metrics:				c[i][j] = 2/np.trace( np.dot(np.conj(D_).T,D_) )
+				if "R" in metrics:				R[i][j] = R_
+				if "T" in metrics:				T[i][j] = T_
+				if "C_SLD" in metrics:			C_SLD[i][j] = C_SLD_
+				# if "C_R" in metrics:			C_R[i][j] = C_SLD_+?
+				# if "C_H"  in metrics:			C_H[i][j] = C_SLD_+norm1_WQIDQIW_ # PURE MODEL ASSUMPTION
+				if "C_W"  in metrics:			C_W[i][j] = C_SLD_+norm1_WQIDQIW_
+				# if "Delta_H_SLD" in metrics:	Delta_H_SLD[i][j] = norm1_QIDQI_/C_SLD_
+				if "Delta_R_T" in metrics:		Delta_R_T[i][j] = R_ - T_
+				# if "Delta_R_H" in metrics:		Delta_R_H[i][j] = R_ - norm1_QIDQI_/C_SLD_
+				# if "Delta_T_H" in metrics:		Delta_T_H[i][j] = T_ - norm1_QIDQI_/C_SLD_
+			else:
+				if "s" in metrics:				s[i][j] = np.nan
+				if "c" in metrics:				c[i][j] = np.nan
+				if "R" in metrics:				R[i][j] = np.nan
+				if "T" in metrics:				T[i][j] = np.nan
+				if "C_SLD" in metrics:			C_SLD[i][j] = np.nan
+				if "C_W"  in metrics:			C_W[i][j] = np.nan
+				if "Delta_R_T" in metrics:		Delta_R_T[i][j] = np.nan
 
 	r = {}
 	if "s" in metrics:				r["s"] = s
@@ -149,7 +157,7 @@ class Analyzer:
 		if state is None:
 			if hasattr(self.sampler.model,"dK"):
 				if self.sampler.model.dK != 0:
-					state = self.sampler.sampleEntangledStatisticalOperator(N=Nstates)
+					state = self.sampler.sampleEntangledStatisticalOperators(N=Nstates)
 			else:
 				state = self.sampler.sampleStatisticalOperators(N=Nstates)
 		if pars is None:
@@ -189,7 +197,11 @@ class Analyzer:
 			print("Calculating metrics")
 
 		t = time()
-		r = fastAnalyze(final_state,L,sqrtm(W).astype(np.float64),W.astype(np.float64),Nstates,Npars,self.sampler.model.npars,metrics)
+		r = {}
+		try:
+			r = fastAnalyze(final_state,L,sqrtm(W).astype(np.float64),W.astype(np.float64),Nstates,Npars,self.sampler.model.npars,metrics)
+		except Exception as e:
+			print(f"Execution stopped: ",e)
 		if verbose:
 			print("Done in: ",time()-t)
 

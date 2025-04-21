@@ -93,8 +93,8 @@ class Sampler:
 		psi = self.buildKet(psi,self.model.dH)
 		phi = self.buildKet(phi,self.model.dK)
 		
-		Psi = np.einsum('ni,nj->nij', psi, phi).reshape(self.model.entanglement_n*N, self.dH*self.dK)
-		Psi = Psi.reshape(N, self.model.entanglement_n, self.dH*self.dK).sum(axis=1)
+		Psi = np.einsum('ni,nj->nij', psi, phi).reshape(self.model.entanglement_n*N, self.model.dH*self.model.dK)
+		Psi = Psi.reshape(N, self.model.entanglement_n, self.model.dH*self.model.dK).sum(axis=1)
 		Psi = Psi / np.sqrt(np.sum(Psi.conj()*Psi,axis=1, keepdims=True))
 
 		rho = np.conj(Psi[:,:,None])*Psi[:,None,:]

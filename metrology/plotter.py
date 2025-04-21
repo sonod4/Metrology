@@ -105,7 +105,7 @@ class Plotter:
 
 	# ============================================= Meaningful statistical plots ============================================= #
 
-	def plotBounds(self,Nstates=1,Npars=1,metrics=["R","T"],sort_by=None,log=False,filname=None,block=True):
+	def plotBounds(self,Nstates=1,Npars=1,metrics=["R","T"],sort_by=None,log=False,filename=None,block=True):
 		"""
 		Plots up to min(Nstates, Npars) subplots, each showing the chosen metrics
 		as functions of the remaining (unfixed) axis.
@@ -153,7 +153,8 @@ class Plotter:
 						y = data[metric][state,:Npars][order]
 					else:
 						y = data[metric][state,:Npars]
-					ax.plot(x, y, marker='.', label=metric)
+					# ax.plot(x, y, marker='.', label=metric)
+					ax.scatter(x, y, s=2, label=metric)
 			else:
 				# Fix a parameter → vary states on x-axis
 				param = idx
@@ -170,7 +171,9 @@ class Plotter:
 						col = data[metric][:Nstates,param][order]
 					else:
 						col = data[metric][:Nstates,param]
-					ax.plot(x, col, marker='.', label=metric)
+					# ax.plot(x, col, marker='.', label=metric)
+					ax.scatter(x, col, s=2, label=metric)
+			# ax.set_ylim(0,5)
 
 			ax.legend()
 			ax.grid(True)
@@ -179,5 +182,7 @@ class Plotter:
 		for j in range(nplots, len(axes_flat)):
 			fig.delaxes(axes_flat[j])
 
+		if not(filename is None):
+			plt.suptitle(filename)
 		plt.tight_layout()
 		plt.show(block=block)
