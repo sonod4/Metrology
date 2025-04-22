@@ -237,9 +237,9 @@ class SU2Model:
 		representationDimension (int): Dimension of the representation matrix (representation = 2j+1, with j the spin).
 		"""
 		self.time = time
-		self.representationDimension = representationDimension
+		self.dH = representationDimension
 
-		self.J = self.findGenerators(self.representationDimension)
+		self.J = self.findGenerators(self.dH)
 ```
 Where the ```self.findGenerators(self.representationDimension)``` function returns a vector with the 3 generators of SU(2), in a generic representation. The implementation is as follows:
 ```python
