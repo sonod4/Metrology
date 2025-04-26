@@ -221,7 +221,7 @@ class Plotter:
 				# Fix a state → vary parameters on x-axis
 				ax.set_xlabel("w")
 				ax.set_title(f"State {s} | pars {p}")
-				if logx:
+				if xlog:
 					ax.set_xscale("log")
 				cs = ["C0","C1","C4","C5","C6"]
 				for m in range(len(metrics)):
@@ -232,7 +232,7 @@ class Plotter:
 				if len(metrics2)>0:
 					cs = []
 					ax2 = ax.twinx()
-					if logy2:
+					if y2log:
 						ax2.set_yscale("log")
 					cs = ["C2","C3","C7","C8","C9"]
 					for m in range(len(metrics2)):
