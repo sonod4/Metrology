@@ -194,7 +194,7 @@ class Plotter:
 		plt.tight_layout()
 		plt.show(block=block)
 
-	def plotW2D(self, metrics=["R","T"],metrics2=[], states=None, pars=None, logx=False, logy2=False, filename=None, block=True):
+	def plotW2D(self, metrics=["R","T"],metrics2=[], states=None, pars=None, xlog=False, y2log=False, filename=None, block=True):
 		data, states, pars, ws = self.formatData(filename,metrics[0],None,states,pars)
 		
 		Nstates = states.shape[0]
