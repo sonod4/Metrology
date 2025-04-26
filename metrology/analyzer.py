@@ -113,7 +113,7 @@ class Analyzer:
 
 	# ============================================= ANALYZER FUNCTIONS ============================================= #
 
-	def fastSampleAnalysis(self, state=None, pars=None, parametersRange=None, Nstates=1,Npars=1, metrics=[], W=None, epsilon=None,
+	def fastSampleAnalysis(self, state=None, pars=None, parametersRange=None, Nstates=1,Npars=1, metrics=[], Ws=None, epsilon=None,
 							save=None, parallelize=True, verbose=True):
 		if epsilon is None: epsilon=self.DEFAULT_EPSILON
 		"""
@@ -128,7 +128,8 @@ class Analyzer:
 		Nstates (int): Number of sample states to use for the statistical analysis.
 		Npars (int): Number of sample parameters to use for the statistical analysis.
 		metrics (lists): List of strings, which specify the metrics to keep track of.
-		W (np.ndarray): Weight matrix, default value is the identity.
+		Ws (np.ndarray): Weight matrices, default value is the identity.
+							Note: It's expected either a shape (N,npars,npars) or (npars,npars)
 		epsilon (float): Specify the step increment in doing derivatives in the incremental way.
 		save (string): If not None, it's the name of the file with the dictionary.
 		parallelize (bool): Flag to parallelize calculation of the SLDs.
@@ -149,6 +150,13 @@ class Analyzer:
 		if not(pars is None) and len(pars.shape)==2:
 			raise Exception("Input shape of parameters must be either (npars), or (Npars,npars).")
 
+		if Ws is None:
+			Ws = np.diag([1]*self.sampler.model.npars)
+		if len(Ws.shape)==2:
+			Ws = Ws.reshape(1,Ws.shape[0],Ws.shape[1])
+		if len(Ws.shape)!=3:
+			raise Exception(f"Weight matrices shape must be either (N,npars,npars) or (npars,npars). Input shape is {Ws.shape}.")
+
 		for m in metrics:
 			if m not in self.available_metrics:
 				raise Exception(f"Invalid metric: available metrics to calcualte are: {self.available_metrics}")
@@ -163,10 +171,6 @@ class Analyzer:
 		if pars is None:
 			pars = self.sampler.sampleParameters(ranges=parametersRange,N=Npars)
 
-		if W is None:
-			W = np.diag([1]*self.sampler.model.npars)
-		elif len(W.shape)!=2 or W.shape[0]!=2 or W.shape[1]!=2:
-			raise Exception("Input shape for W must be (npars,npars).")
 
 		t = time()
 		# Analyzing for each combination of (state,parameters)
@@ -196,19 +200,31 @@ class Analyzer:
 			print("Calculated SLDs in: ",time()-t)
 			print("Calculating metrics")
 
+		results = {}
+		for m in metrics:
+			results[m] = np.zeros( (Ws.shape[0],Nstates,Npars) )
+		results["W"] = np.zeros( (Ws.shape[0],self.sampler.model.npars,self.sampler.model.npars) )
+
 		t = time()
-		r = {}
 		try:
-			r = fastAnalyze(final_state,L,sqrtm(W).astype(np.float64),W.astype(np.float64),Nstates,Npars,self.sampler.model.npars,metrics)
+			# SLDs are the same for all matrices, so that calculation is reused
+			for wi in range(len(Ws)):
+				r = fastAnalyze(final_state,L,sqrtm(Ws[wi]).astype(np.float64),Ws[wi].astype(np.float64),Nstates,Npars,self.sampler.model.npars,metrics)
+				r = dict(r)
+				for m in metrics:
+					results[m][wi] = r[m].copy()
+				results["W"][wi] = Ws[wi]
+				del r
+				if verbose and Ws.shape[0]>1:
+					print(f"Done {wi}/{Ws.shape[0]} of W values.")
 		except Exception as e:
 			print(f"Execution stopped: ",e)
 		if verbose:
 			print("Done in: ",time()-t)
 
-		r = dict(r)
 		if not(save is None):
-			self.save(save, r)
-		return r
+			self.save(save, results)
+		return results
 
 	def save(self, filename, obj):
 		with open(filename, 'wb') as file:
