@@ -1,13 +1,15 @@
+
 # Metrology library
 This python library is aimed to be used as a tool to provide generic analysis on **pure** models.
 
 **Index:**
 - [Library Classes](#library-classes)
-	- [Analyzer](#model)
+	- [Analyzer](#analyzer)
 	- [Sampler](#sampler)
 	- [Plotter](#plotter)
 - [Metrics](#metrics)
 - [Model](#model)
+- [Usage Examples](#usage-examples)
 
 ## Library Classes
 The library is made of 3 classes that can be used.
@@ -50,7 +52,7 @@ $$  \begin{bmatrix}
 The main method to be called is 
 ```python
 def fastSampleAnalysis(self, state=None, pars=None, parametersRange=None,
-			Nstates=1,Npars=1, metrics=[], W=None, epsilon=None,
+			Nstates=1,Npars=1, metrics=[], Ws=None, epsilon=None,
 			save=None, parallelize=True, verbose=True)
 ```
 This method returns a dictionary(a map key-values) with the asked statistical informations **calculated for each sample combination**(so a matrix of numbers).
@@ -61,7 +63,7 @@ The function inputs are:
 - **Nstates**(int): It specify the number of states to randomly(uniformly) sample over Hilbert space $H$(or $H\otimes K$ in case the model uses entangled probes).
 - **Npars**(int): It specify the number of parameter choices to randomly(uniformly) sample over the ranges defined in *parametersRange*.
 - **metrics**(list of strings): Name of metrics to calculate for each sample. Supported metrics are ["s","c","R","T","C_SLD","C_H","C_W","Delta_R_T"](refer to [Metrics](#metrics) for their definitions).
-- **W**(ndarray): Must be real positive matrix of shape (npars,npars). Default value is the identity.
+- **Ws**(ndarray): Must be real positive matrix(or vector of matrices) of shape either (npars,npars) or (#ws,npars,npars). Default value is the identity.
 - **epsilon**(float): In calculating derivatives, it's used an incremental step, *epsilon* is the size of the step which can be adjusted. (Default value is 0.00000001.)
 - **save**(string): If passed saves the result dictionary into a file with that name(pickle is used).
 - **parallelize**(bool): The calculation for the SLDs are parallelized by default with Thread. If set to False this is done sequentially instead.
@@ -110,54 +112,65 @@ Inputs:
 - **data**(dictionary): Dictionary with as keys the metrics(the one returned by Analyzer).
 - **filename**(string): Name of the pickle file into which the data dictionary has been pickled.
 
-The class can be used either with a specific dictionary, which can be loaded either in the constructor, or with
-```python
-def load(self, filename, flatten=False):
-```
-Inputs:
-- **filename**(string): Name of the pickle file into which the data dictionary has been pickled.
-- **flatten**(bool): Specify if each metric matrix(states\*parameters) is desired to be flattened. If kept as matrix form the plots will discern between states, but the plot may be slower and with too many information. If True the information of states/params pairs is lost, but the plots are more readable in large states/params case.
-
+The class can be used either with a specific dictionary, which can be loaded either in the constructor, or on the fly while calling plot functions.
 
 Here a list of the prebuilt plot functions.
 ```python
-def plot2D(self, xlabel, ylabel, filename=None, xlog=True, ylog=True, diagonal=True, flatten=True, lightweight=False, block=True):
+def plot2D(self, xlabel, ylabel, filename=None, ws=None, states=None, pars=None,
+				xlog=False, ylog=False, diagonal=True, seeStates=False, block=True):
 ```
 Inputs:
 - **xlabel**(string): Name of the metric to put on the x.
 - **ylabel**(string): Name of the metric to put on the y.
-- **filename**(string): If given, loads and plots the data in the specific file specified.
-**Note**: this does not override the data currently stored(loaded) in the class.
+- **filename**(string): If given, loads and plots the data in the file specified.
+**Note**: this does not override the data currently stored(loaded in the constructor) in the class.
+- **ws**(ndarray): Vector specifying which(by index) weights select to display.
+- **states**(ndarray): Vector specifying which(by index) states select to display.
+- **pars**(ndarray): Vector specifying which(by index) pars select to display.
 - **xlog,ylog**(bool): Sets the relative axis with a logarithmic scale.
-- **flatten**(bool): Specify if each metric matrix(states\*parameters) is desired to be flattened. If kept as matrix form the plots will discern between states, but the plot may be slower and with too many information. If True the information of states/params pairs is lost, but the plots are more readable in large states/params case.
-- **lightweight**(bool): If *flatten=True*, it will keep only the first 10'000 samples, in order to avoid too dense(and slower) plots.
 - **diagonal**(bool): Display a red line as the main diagonal(for reference).
+- **seeStates**(bool): Displays different probe states with different colors.
+**Note**: if many states are selected, the plot gets slow and messy.
 - **block**(bool): If False multiple plots can be shown at the same time. If True each plot will block execution(as is the matplotlib default behaviour).
 
 
-**Note**: If the data is not flattened, for graphical reasons only data up to 10 states are plotted.
+```python
+def plot3D(self, xlabel, ylabel, zlabel, filename=None, ws=None, states=None, pars=None,
+			seeStates=False, block=True):
+```
+Inputs: same as plot2D(zlabel is just the metric to put on z axis).
 
 ```python
-def plot3D(self, xlabel, ylabel, zlabel, filename=None, block=True):
+def hist(self, xlabel, bins=100, ranges=None, filename=None,
+					ws=None, states=None, pars=None, block=True):
 ```
-Inputs: the usual metric labels, filename and block option.
+Inputs: most are the same as plot2D. ```bins``` is the number of bins, and ```range``` specify the range of the histogram.
 
 ```python
-def hist(self, xlabel, filename=None, bins=100, ranges=None, filename=None, block=True):
+def plotBounds(self,metrics=["R","T"],sort_by=None,ws=None,states=None,pars=None,
+				log=False,filename=None,block=True):
 ```
-Inputs: refer to [matplotlib histograms](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.hist.html).
+This function displays a grid of plots. Each plot has a fixed state/params. This depends on how much states and params are asked to be considered. The smaller of the two *is* the number of plots, and each plot has that one fixed, and plots the metrics for every possible value of the other.
+Example: number of states is 5 and number of params is 1000. A window with 5 plots is generated. Each plot has 1000*(number of ws) points, one for each parameter(and weight) combination.
 
-```python
-def plotBounds(self,Nstates=1,Npars=1,metrics=["R","T"],sort_by=None,log=False,filename=None,block=True):
-```
-Inputs:
-- **Nstates,Npars**(int): Number of states and parameters. The minimum of the two will be the number of subplots, and for each subplot the other number of samples is shown. So for example *Nstates=5,Npars=1_000* will show 5 plots, each with a fixed state, and will show 1'000 points(1 for each parameter). *Nstates=1_000,Npars=5* is the reverse.
+Inputs(the ones different from plot2D):
 - **metrics**(list of strings): The metrics to plot with fixed state/parameter for all the parameters/states.
-- **sort_by**(string): Specify a metric for which the various points in the plot are sorted by. **Note**: the metric doesn't have to be one of the plotted metrics. For example ```plotBounds(5,100,metrics=["R","T"],sort_by="C_SLD")``` will plot R and T values, but sort them in ascending order with respect to the "optimality" of the state for the given parameter(or the reverse). This can be interesting to see for example the incompatibility change between optimal to worse probes.
+- **sort_by**(string): Specify a metric for which the various points in the plot are sorted by.
+**Note**: the metric doesn't have to be one of the plotted metrics. For example ```plotBounds(metrics=["R","T"], sort_by="C_SLD", ws=[5,6],states=range(5), pars=range(1000))``` will plot R and T values, but sort them in ascending order with respect to the "optimality"($C_{\text{SLD}}$ value) of the state for the given parameter. This can be interesting to see for example the incompatibility change between optimal to worse probes. (Also, here there will be 5 plots, one for each of the first 5 states, each with 2000 points, corresponding to the firsts 1000 params, for the weight matrices at index 5 and 6).
 - **log**(bool): If True the y is set to logarithmic scale.
-- **filename**(string): If given, loads and plots the data in the specific file specified.
-- **block**(bool): If True execution is stopped at each graph.
 
+
+```python
+def plotW2D(self, metrics=["R","T"],metrics2=[], states=None, pars=None,
+				xlog=False, y2log=False, filename=None, block=True):
+```
+This function displays a window with a grid of plots corresponding to the cartesian product of the selected states and params. For each combination a plot with the asked metrics is plotted. The x axis is the weight. So the graphs display the dependency of the various metrics, with respect to W, valued at different state/params choices.
+
+Inputs(the ones different from plot2D):
+- **metrics**(list of strings): The metrics to plot with fixed state/parameter for all the W.
+- **metrics2**(list of strings): The metrics to plot with fixed state/parameter for all the W, *on a secondary yaxis*.
+- **xlog**(bool): Set x axis to log scale.
+- **y2log**(bool): Set y axis, for the secondary metrics, to a log scale.
 
 
 ## Metrics
@@ -261,4 +274,25 @@ def findGenerators(self, representationDimension):
 	J_y = -0.5j*(J_plus-J_minus)
 
 	return tensor([J_x,J_y,J_z])
+```
+
+## Usage Examples
+In the main folder there are a bunch of working scripts as examples. The ones that ends with "*Weighted*" samples models over different weight matrices, the others are just base implementations of the various models.
+
+The idea is to always:
+1) Define the [Model](#model)
+2) Create an [Analyzer](#analyzer), and run a personalized ```fastSampleAnalysis```(storing the data in a folder).
+3) Plot the data using the [Plotter](#plotter)
+
+**Note**: When running the first time on specific models, the library compiles a function, so it may take 30 to 60 seconds more than usual. The compilation will be cached, so successive executions will be quicker.
+
+## Examples of Plots
+There are no files in the main that shows examples of plots, so here are a few example plots.
+```python
+pl = Plotter(filename="data/W2scrambler_100_50_100.pkl")
+pl.plot2D("R","T",ws=range(2),states=range(3),pars=range(2),diagonal=False)
+pl.hist("T",ws=range(100))
+pl.plotBounds(sort_by="C_SLD",ws=[50],states=range(10),pars=range(100))
+pl.plotW2D(metrics=["R","T"],metrics2=["C_SLD"],states=range(3),pars=range(3),xlog=True,y2log=True)
+
 ```
