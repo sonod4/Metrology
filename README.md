@@ -151,10 +151,17 @@ def plot3D(self, xlabel, ylabel, zlabel, filename=None, ws=None, states=None, pa
 Inputs: same as plot2D(zlabel is just the metric to put on z axis).
 
 ```python
-def hist(self, xlabel, bins=100, ranges=None, filename=None,
-					ws=None, states=None, pars=None, block=True):
+def hist(self, xlabels, bins=100, ranges=None, filename=None,
+			ws=None, states=None, pars=None, wPeaks=False, block=True):
 ```
-Inputs: most are the same as plot2D. ```bins``` is the number of bins, and ```range``` specify the range of the histogram.
+Inputs(the ones different from plot2D):
+- **xlabels**(string, or list of strings): Either the metric(string) to make the histrogram of, or a list of metrics(list of strings), each of which will have an independent graph.
+- **bins**(int): Number of bins in the histogram.
+- **ranges**(tuple): Tuple with (xmin,xmax).
+- **wPeaks**(bool): If True, plots the histogram of only the peak values obtained varying w, at every state/parameters combination.
+
+most are the same as plot2D. ```bins``` is the number of bins, and ```range``` specify the range of the histogram.
+
 
 ```python
 def plotBounds(self,metrics=["R","T"],sort_by=None,ws=None,states=None,pars=None,
