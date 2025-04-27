@@ -110,14 +110,23 @@ class Plotter:
 		plt.title(f"{xlabel}-{ylabel}-{zlabel} relation")
 		plt.show(block=block)
 
-	def hist(self, xlabel, bins=100, ranges=None, filename=None, ws=None, states=None, pars=None, block=True):
-		data, states, pars, ws = self.formatData(filename,xlabel,ws,states,pars)
+	def hist(self, xlabels, bins=100, ranges=None, filename=None, ws=None, states=None, pars=None, wPeaks=False, block=True):
+		if type(xlabels)==type(""):
+			xlabels = [xlabels]
+		data, states, pars, ws = self.formatData(filename,xlabels[0],ws,states,pars)
 
-		x = data[xlabel][np.ix_(ws,states,pars)].flatten()
+		nrows = 1
+		ncols = len(xlabels)
+		fig, axes = plt.subplots(nrows, ncols, squeeze=False)
 
-		fig = plt.figure()
-		plt.hist(x, bins=bins, range=ranges, density=True)
-		plt.title(f"{xlabel} hist")
+		for i in range(len(xlabels)):
+			if not wPeaks:
+				x = data[xlabels[i]][np.ix_(ws,states,pars)].flatten()
+			else:
+				x = np.max(data[xlabels[i]][np.ix_(ws,states,pars)], axis=0).flatten()
+			axes[0,i].hist(x, bins=bins, range=ranges, density=True)
+			axes[0,i].set_title(xlabels[i])
+			axes[0,i].set_xlabel(xlabels[i])
 		plt.show(block=block)
 
 	# ============================================= Meaningful statistical plots ============================================= #
