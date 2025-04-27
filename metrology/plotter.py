@@ -241,7 +241,8 @@ class Plotter:
 				# ax.set_ylim(0,5)
 
 				ax.legend()
-				ax2.legend()
+				if len(metrics2)>0:
+					ax2.legend()
 				ax.grid(True)
 
 		# Remove any unused subplots
