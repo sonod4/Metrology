@@ -1,7 +1,15 @@
 
 # Metrology library
-This python library is aimed to be used as a tool to provide generic analysis on **pure** models.
+This python library is aimed to be used as a tool to provide metrological analysis on **pure** models on finite Hilbert spaces.
 
+## In a nutshell
+1) Download the library.
+2) Make sure that the file which is being executed, **has in its folder, the metrology folder with the library**.
+2) Run the model of interest (some are already implemented in the main).
+3) If wanting to sample over Ws do as [sampling over multiple Ws](#sample-over-different-ws).
+4) Having stored the data in a file, use [Plotter](#plotter) to [plot the graphs of interest](#examples-of-plots)
+
+## Documentation
 **Index:**
 - [Library Classes](#library-classes)
 	- [Analyzer](#analyzer)
@@ -10,6 +18,8 @@ This python library is aimed to be used as a tool to provide generic analysis on
 - [Metrics](#metrics)
 - [Model](#model)
 - [Usage Examples](#usage-examples)
+	- [Sample over different Ws](#sample-over-different-ws)
+	- [Examples of Plots](#examples-of-plots)
 
 ## Library Classes
 The library is made of 3 classes that can be used.
@@ -59,7 +69,7 @@ This method returns a dictionary(a map key-values) with the asked statistical in
 The function inputs are:
 - **state**(ndarray): If we want to work with a specific state($\rho$), or a list of states, we can pass them here. Shape of input is therefore either (dH,dH) or (#states,dH,dH).
 - **pars**(ndarray): If we want to work with a specific parameters choice, or a list of parameters, we can pass them here. Shape of input is therefore either (npars) or (#parametersWanted,npars).
-- **parametersRange**(ndarray): Vector of ranges, over which the respectively parameters are sampled over. (i.e. ```np.array([ [0,0.01],[0,2*pi] ])``` ). It can be useful if we want to sample small values for some(or all) the parameters. If pars is not passed this argoument is mandatory.
+- **parametersRange**(ndarray): Vector of ranges, over which the respectively parameters are sampled over. (i.e. ```np.array([ [0,0.01],[0,2*pi] ])``` ). It can be useful if we want to sample small values for some(or all) the parameters. If pars is not passed this argument is mandatory.
 - **Nstates**(int): It specify the number of states to randomly(uniformly) sample over Hilbert space $H$(or $H\otimes K$ in case the model uses entangled probes).
 - **Npars**(int): It specify the number of parameter choices to randomly(uniformly) sample over the ranges defined in *parametersRange*.
 - **metrics**(list of strings): Name of metrics to calculate for each sample. Supported metrics are ["s","c","R","T","C_SLD","C_H","C_W","Delta_R_T"](refer to [Metrics](#metrics) for their definitions).
@@ -285,6 +295,47 @@ The idea is to always:
 3) Plot the data using the [Plotter](#plotter)
 
 **Note**: When running the first time on specific models, the library compiles a function, so it may take 30 to 60 seconds more than usual. The compilation will be cached, so successive executions will be quicker.
+
+## Sample over different Ws
+Most files in the main folder don't sample over different Ws, but this can be changed quite quickly. For example let's consider *su2_2pars.py*. The part of interest is
+```python
+Nstates = 1_000
+Npars = 1_000
+metrics = ["s","c","R","T","C_SLD","C_W","Delta_R_T"]
+r = model.fastSampleAnalysis(Nstates=Nstates,Npars=Npars,parametersRange=np.array([[0,2*pi],[0,2*pi]]),metrics=metrics,
+							save=f"data/su2_2pars_{dim}bit_{Nstates}_{Npars}.pkl")
+```
+To sample over different Ws we can just pass the Ws argument in the ```fastSampleAnalysis```. This can be done in the following way.
+```python
+Nstates = 1_000
+Npars = 1_000
+metrics = ["s","c","R","T","C_SLD","C_W","Delta_R_T"]
+
+# New lines
+w = np.logspace(-5,5,100)
+Ws = np.array([np.diag([1.,wi]) for wi in w])
+
+# Now passing also Ws=Ws
+r = model.fastSampleAnalysis(Nstates=Nstates,Npars=Npars,parametersRange=np.array([[0,2*pi],[0,2*pi]]),metrics=metrics,
+							Ws=Ws, # new argument
+							save=f"data/su2_2pars_{dim}bit_{Nstates}_{Npars}.pkl")
+```
+**Note**: This way we're sampling logarithmically over various Ws. This can be personalized.
+
+**Note2**: Since all possible combinations of states/pars/Ws are sampled, keeping all those states and metrics will produce a massive data file. It's better to reduce both, so for example as follows.
+```python
+Nstates = 50 # now smaller
+Npars = 1_000
+metrics = ["R","T","C_SLD"] # now less metrics
+
+# New lines
+w = np.logspace(-5,5,100)
+Ws = np.array([np.diag([1.,wi]) for wi in w])
+
+# Now passing also Ws=Ws
+r = model.fastSampleAnalysis(Nstates=Nstates,Npars=Npars,parametersRange=np.array([[0,2*pi],[0,2*pi]]),metrics=metrics,
+							Ws=Ws,save=f"data/su2_2pars_{dim}bit_{Nstates}_{Npars}.pkl")
+```
 
 ## Examples of Plots
 There are no files in the main that shows examples of plots, so here are a few example plots.
